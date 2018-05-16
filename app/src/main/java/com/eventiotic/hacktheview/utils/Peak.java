@@ -7,6 +7,8 @@ public class Peak {
     Double lat;
     Double lon;
     Tags tags;
+    double az;
+    float angleloc;
 
     public Double getLat() {
         return lat;
@@ -20,5 +22,9 @@ public class Peak {
 
     public Tags getTags() {
         return tags;
+    }
+
+    public void setAz(double a) {
+        this.az=a;
     }
 }

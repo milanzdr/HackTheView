@@ -15,10 +15,8 @@ public class PeakListAdapter extends RecyclerView.Adapter<PeakListAdapter.ViewHo
     Peak[] peaks;
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        // each data item is just a string in this case
         public TextView nameTxt;
         public TextView eleTxt;
-        //public TextView eleTxt;
         public ViewHolder(View v) {
             super(v);
             nameTxt = (TextView) v.findViewById(R.id.nameTxt);
