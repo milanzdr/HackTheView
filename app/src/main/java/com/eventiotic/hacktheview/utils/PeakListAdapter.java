@@ -11,8 +11,14 @@ import com.eventiotic.hacktheview.R;
 
 import org.w3c.dom.Text;
 
+import java.text.DecimalFormat;
+import java.util.List;
+
 public class PeakListAdapter extends RecyclerView.Adapter<PeakListAdapter.ViewHolder>  {
-    Peak[] peaks;
+    List<Peak> peaks;
+
+
+
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public TextView nameTxt;
@@ -24,8 +30,17 @@ public class PeakListAdapter extends RecyclerView.Adapter<PeakListAdapter.ViewHo
         }
     }
 
+    public void updateData(List<Peak> p) {
+        if(p == null || p.size()==0)
+            return;
+        if (peaks != null && peaks.size()>0)
+            peaks.clear();
+        peaks.addAll(p);
+        notifyDataSetChanged();
+    }
 
-    public PeakListAdapter(Peak[] peaks) {
+
+    public PeakListAdapter(List<Peak> peaks) {
         this.peaks = peaks;
     }
 
@@ -45,23 +60,27 @@ public class PeakListAdapter extends RecyclerView.Adapter<PeakListAdapter.ViewHo
         String peakNameStr;
         String peakElevationStr;
         //BIND DATA
-        peakNameStr=peaks[position].getTags().getName();
-        if(peaks[position].getTags().getName()=="") {
+        peakNameStr=peaks.get(position).getTags().getName();
+        if(peaks.get(position).getTags().getName()=="") {
             peakNameStr="Unnamed";
         }
         holder.nameTxt.setText(peakNameStr);
-        if(peaks[position].getTags().getEle()==0) {
-            peakElevationStr="Not known";
+        if(peaks.get(position).getTags().getEle()==0) {
+            peakElevationStr="Elevation: Not known";
         } else {
-            peakElevationStr=peaks[position].getTags().getEle().toString()+"m";
+            peakElevationStr="Elevation: "+peaks.get(position).getTags().getEle().toString()+"m";
         }
+        //if(peaks.get(position).getDistance()) {
+        DecimalFormat numberFormat = new DecimalFormat("#.0");
+        peakElevationStr=peakElevationStr+", distance: "+numberFormat.format(peaks.get(position).getDistance())+"km, azimuth: "+numberFormat.format(peaks.get(position).getAz())+"deg";
+        //}
         holder.eleTxt.setText(peakElevationStr);
 
     }
 
     @Override
     public int getItemCount() {
-        return peaks.length;
+        return peaks.size();
     }
 
 }

@@ -28,6 +28,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.eventiotic.hacktheview.utils.Peak;
 import com.eventiotic.hacktheview.utils.PeakListAdapter;
+import com.eventiotic.hacktheview.utils.Utils;
 import com.google.gson.Gson;
 
 import org.json.JSONArray;
@@ -35,6 +36,7 @@ import org.json.JSONObject;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -55,11 +57,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     String url;
     private static final String TAG = "HackTheView";
     private RecyclerView.LayoutManager mLayoutManager;
-    private RecyclerView.Adapter mAdapter;
+    private PeakListAdapter mAdapter;
     private double locAzimuth;
     private double curAzimuth;
     private double phoneAngle = 30.00;
-    Peak[] peaks;
+    private List<Peak> peaks;
+    private List<Peak> visiblepeaks;
 
     // Get readings from accelerometer and magnetometer.
     @Override
@@ -73,40 +76,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             System.arraycopy(event.values, 0, mMagnetometerReading,
                     0, mMagnetometerReading.length);
         }
-        updateOrientationAngles();
-        this.curAzimuth=mOrientationAngles[0];
-        float rotation=-mOrientationAngles[0] * 360 / (2 * 3.14159f);
-        mLocationInfoTextView.setText(this.locText+ Float.toString(rotation));
-
-
-
-    }
-
-    private List<Peak> updatePeaks() {
-        List<Peak> newPeaks = new ArrayList<Peak>();
-        double dy;
-        double dx;
-        for (Peak peak: peaks) {
-            dy=peak.getLon()-curLocation.getLongitude();
-            dx=peak.getLat()-curLocation.getLatitude();
-            double a = (Math.atan(Math.abs(dy/dx))) * 360 / (2 * 3.14159f);
-            if(dx<0 && dy>0) {
-                a = 180-a;
-            } else if(dx<0 && dy<0) {
-                a = 180+a;
-            } else if(dx>0 && dy<0) {
-                a=360-a;
-            }
-            peak.setAz(a);
-            Log.i(TAG, peak.getTags().getName()+" "+ a);
-            if(a-this.curAzimuth < (phoneAngle/2)) {
-                newPeaks.add(peak);
-            }
-        }
-        return newPeaks;
-    }
-
-    public void updateOrientationAngles() {
         // Update rotation matrix, which is needed to update orientation angles.
         mSensorManager.getRotationMatrix(mRotationMatrix, null,
                 mAccelerometerReading, mMagnetometerReading);
@@ -116,6 +85,48 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mSensorManager.getOrientation(mRotationMatrix, mOrientationAngles);
 
         // "mOrientationAngles" now has up-to-date information.
+
+        this.curAzimuth=mOrientationAngles[0];
+        double rotation=Utils.radiansToDegrees(mOrientationAngles[0]);
+        DecimalFormat azFormat = new DecimalFormat("#.0");
+        mLocationInfoTextView.setText(this.locText+ azFormat.format(Utils.getAzimuth(rotation)));
+
+
+        visiblepeaks=getVisiblePeaks(rotation);
+        if(mAdapter!=null && visiblepeaks!=null) {
+            mAdapter.updateData(visiblepeaks);
+        }
+
+
+    }
+
+    private void showPeaks(List<Peak> peaks) {
+        mPeakListRecyclerView = (RecyclerView) findViewById(R.id.peakListRecyclerView);
+
+        // use this setting to improve performance if you know that changes
+        // in content do not change the layout size of the RecyclerView
+        mPeakListRecyclerView.setHasFixedSize(true);
+        mLayoutManager = new LinearLayoutManager(this);
+        mPeakListRecyclerView.setLayoutManager(mLayoutManager);
+
+        mAdapter = new PeakListAdapter(peaks);
+        mPeakListRecyclerView.setAdapter(mAdapter);
+    }
+
+    public List<Peak> getVisiblePeaks(double curRotation) {
+        List<Peak> ps = new ArrayList<Peak>();
+        //DecimalFormat azFormat = new DecimalFormat("#.0");
+        if(peaks!=null) {
+            for (Peak peak: peaks) {
+                if(Math.abs(peak.getAz()-curRotation)<phoneAngle/2) {
+                    //Log.i(TAG, "Vidljiv: "+peak.getTags().getName()+", az:"+azFormat.format(peak.getAz()));
+                    ps.add(peak);
+                }
+            }
+            //Log.i(TAG, " "+peaks.size());
+        }
+
+        return ps;
     }
 
     @Override
@@ -206,9 +217,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         int resultCount = jsonArray.length();
                         if (resultCount > 0) {
                             Gson gson = new Gson();
-                            peaks = gson.fromJson(jsonArray.toString(), Peak[].class);
+                            peaks = Arrays.asList(gson.fromJson(jsonArray.toString(), Peak[].class));
+                            updatePeaks();
                             showPeaks(peaks);
-                            List<Peak> pks = updatePeaks();
+
                         }
                     }
                 }
@@ -223,18 +235,17 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     }
 
-    private void showPeaks(Peak[] peaks) {
-        mPeakListRecyclerView = (RecyclerView) findViewById(R.id.peakListRecyclerView);
-
-        // use this setting to improve performance if you know that changes
-        // in content do not change the layout size of the RecyclerView
-        mPeakListRecyclerView.setHasFixedSize(true);
-        mLayoutManager = new LinearLayoutManager(this);
-        mPeakListRecyclerView.setLayoutManager(mLayoutManager);
-
-        mAdapter = new PeakListAdapter(peaks);
-        mPeakListRecyclerView.setAdapter(mAdapter);
+    private void updatePeaks() {
+        List<Peak> ps = new ArrayList<Peak>();
+        for (Peak peak: peaks) {
+            peak.setDistance(curLocation);
+            peak.setAz(curLocation);
+            ps.add(peak);
+        }
+        this.peaks=ps;
     }
+
+
 
     private Location getLastKnownLocation(LocationManager mLocationManager) {
         List<String> providers = mLocationManager.getProviders(true);
