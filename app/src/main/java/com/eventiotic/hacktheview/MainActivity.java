@@ -1,292 +1,117 @@
 package com.eventiotic.hacktheview;
 
-import android.Manifest;
-import android.content.pm.PackageManager;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.util.Log;
-import android.widget.TextView;
-import android.content.Context;
-import android.widget.Toast;
-
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
-import com.eventiotic.hacktheview.utils.Peak;
-import com.eventiotic.hacktheview.utils.PeakListAdapter;
-import com.eventiotic.hacktheview.utils.Utils;
-import com.google.gson.Gson;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import android.view.View;
 
 
-public class MainActivity extends AppCompatActivity implements SensorEventListener {
+public class MainActivity extends AppCompatActivity {
 
-
-    private TextView mLocationInfoTextView;
-    private SensorManager mSensorManager;
-    private final float[] mAccelerometerReading = new float[3];
-    private final float[] mMagnetometerReading = new float[3];
-    private final float[] mRotationMatrix = new float[9];
-    private final float[] mOrientationAngles = new float[3];
-    private String locText;
-    private RecyclerView mPeakListRecyclerView;
-    public static final int PERMISSION_ACCESS_FINE_LOCATION = 1;
-    private Location curLocation;
-    String baseUrl="https://www.overpass-api.de/api/interpreter";
-    String url;
-    private static final String TAG = "HackTheView";
-    private RecyclerView.LayoutManager mLayoutManager;
-    private PeakListAdapter mAdapter;
-    private double locAzimuth;
-    private double curAzimuth;
-    private double phoneAngle = 30.00;
-    private List<Peak> peaks;
-    private List<Peak> visiblepeaks;
-
-    // Get readings from accelerometer and magnetometer.
-    @Override
-    public void onSensorChanged(SensorEvent event) {
-
-        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-            System.arraycopy(event.values, 0, mAccelerometerReading,
-                    0, mAccelerometerReading.length);
-        }
-        else if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
-            System.arraycopy(event.values, 0, mMagnetometerReading,
-                    0, mMagnetometerReading.length);
-        }
-        // Update rotation matrix, which is needed to update orientation angles.
-        mSensorManager.getRotationMatrix(mRotationMatrix, null,
-                mAccelerometerReading, mMagnetometerReading);
-
-        // "mRotationMatrix" now has up-to-date information.
-
-        mSensorManager.getOrientation(mRotationMatrix, mOrientationAngles);
-
-        // "mOrientationAngles" now has up-to-date information.
-
-        this.curAzimuth=mOrientationAngles[0];
-        double rotation=Utils.radiansToDegrees(mOrientationAngles[0]);
-        DecimalFormat azFormat = new DecimalFormat("#.0");
-        mLocationInfoTextView.setText(this.locText+ azFormat.format(Utils.getAzimuth(rotation)));
-
-
-        visiblepeaks=getVisiblePeaks(rotation);
-        if(mAdapter!=null && visiblepeaks!=null) {
-            mAdapter.updateData(visiblepeaks);
-        }
-
-
-    }
-
-    private void showPeaks(List<Peak> peaks) {
-        mPeakListRecyclerView = (RecyclerView) findViewById(R.id.peakListRecyclerView);
-
-        // use this setting to improve performance if you know that changes
-        // in content do not change the layout size of the RecyclerView
-        mPeakListRecyclerView.setHasFixedSize(true);
-        mLayoutManager = new LinearLayoutManager(this);
-        mPeakListRecyclerView.setLayoutManager(mLayoutManager);
-
-        mAdapter = new PeakListAdapter(peaks);
-        mPeakListRecyclerView.setAdapter(mAdapter);
-    }
-
-    public List<Peak> getVisiblePeaks(double curRotation) {
-        List<Peak> ps = new ArrayList<Peak>();
-        //DecimalFormat azFormat = new DecimalFormat("#.0");
-        if(peaks!=null) {
-            for (Peak peak: peaks) {
-                if(Math.abs(peak.getAz()-curRotation)<phoneAngle/2) {
-                    //Log.i(TAG, "Vidljiv: "+peak.getTags().getName()+", az:"+azFormat.format(peak.getAz()));
-                    ps.add(peak);
-                }
-            }
-            //Log.i(TAG, " "+peaks.size());
-        }
-
-        return ps;
-    }
-
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
-
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        // Get updates from the accelerometer and magnetometer at a constant rate.
-        // To make batch operations more efficient and reduce power consumption,
-        // provide support for delaying updates to the application.
-        //
-        // In this example, the sensor reporting delay is small enough such that
-        // the application receives an update before the system checks the sensor
-        // readings again.
-
-
-
-        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
-        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD), SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
-
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        // Don't receive any more updates from either sensor.
-        mSensorManager.unregisterListener(this);
-    }
+    public String baseUrl="https://www.overpass-api.de/api/interpreter";
+    public String tag = "HackTheView";
+    public int viewRadius = 20000;
+    public String nodeType = "peak";
+    public int viewAngle = 45;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        if(ContextCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.ACCESS_FINE_LOCATION },
-                    PERMISSION_ACCESS_FINE_LOCATION);
-        } else {
-            this.doStuff();
-        }
     }
 
-    private void doStuff() {
-        //Toast.makeText(this, "All good from onCreate", Toast.LENGTH_SHORT).show();
-        LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-        curLocation = this.getLastKnownLocation(locationManager);
-        mLocationInfoTextView = (TextView) findViewById(R.id.locationInfoTextView);
-        DecimalFormat numberFormat = new DecimalFormat("#.0000");
-        this.locText="Location fixed. Lat: "+numberFormat.format(curLocation.getLatitude())+". Long: "+numberFormat.format(curLocation.getLongitude())+". Azimuth: ";
-        mLocationInfoTextView.setText(this.locText);
-
-// Define a listener that responds to location updates
-        LocationListener locationListener = new LocationListener() {
-            public void onLocationChanged(Location location) {
-                // Called when a new location is found by the network location provider.
-                curLocation = location;
-
-                //mLocationInfoTextView.setText("Latitude: "+curLocation.getLatitude()+". Longitude: "+curLocation.getLongitude());
-            }
-
-            public void onStatusChanged(String provider, int status, Bundle extras) {}
-
-            public void onProviderEnabled(String provider) {}
-
-            public void onProviderDisabled(String provider) {}
-        };
-
-// Register the listener with the Location Manager to receive location updates
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
-
-        url=baseUrl+"?data=[out:json];node(around:20000,%20"+curLocation.getLatitude()+",%20"+curLocation.getLongitude()+")[natural=peak];out;";
-        RequestQueue requestQueue = Volley.newRequestQueue(this);
-        //Log.i(TAG, "Pre requesta");
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject response) {
-                //Log.i(TAG, url);
-                if (response != null) {
-                    //Log.i(TAG, "Dobio response");
-                    JSONArray jsonArray = response.optJSONArray("elements");
-                    if (jsonArray != null) {
-                        int resultCount = jsonArray.length();
-                        if (resultCount > 0) {
-                            Gson gson = new Gson();
-                            peaks = Arrays.asList(gson.fromJson(jsonArray.toString(), Peak[].class));
-                            updatePeaks();
-                            showPeaks(peaks);
-
-                        }
-                    }
-                }
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.e("LOG", error.toString());
-            }
-        });
-        requestQueue.add(jsonObjectRequest);
-
-    }
-
-    private void updatePeaks() {
-        List<Peak> ps = new ArrayList<Peak>();
-        for (Peak peak: peaks) {
-            peak.setDistance(curLocation);
-            peak.setAz(curLocation);
-            ps.add(peak);
-        }
-        this.peaks=ps;
+    /** Called when the user taps the Send button */
+    public void openPeaks(View view) {
+        // Do something in response to button
+        Intent intent = new Intent(this, OSMNodesViewActivity.class);
+        intent.putExtra("baseUrl", baseUrl);
+        intent.putExtra("tag", tag);
+        intent.putExtra("viewRadius", viewRadius);
+        intent.putExtra("viewAngle", viewAngle);
+        intent.putExtra("nodeType", "peak");
+        startActivity(intent);
     }
 
 
-
-    private Location getLastKnownLocation(LocationManager mLocationManager) {
-        List<String> providers = mLocationManager.getProviders(true);
-        Location bestLocation = null;
-        for (String provider : providers) {
-            Location l = mLocationManager.getLastKnownLocation(provider);
-            //Log.d("last known location, provider: %s, location: %s", provider,l);
-
-            if (l == null) {
-                continue;
-            }
-            if (bestLocation == null
-                    || l.getAccuracy() < bestLocation.getAccuracy()) {
-                //Log.d("found best last known location: %s", l);
-                bestLocation = l;
-            }
-        }
-        if (bestLocation == null) {
-            return null;
-        }
-        return bestLocation;
+    public void openSaddles(View view) {
+        Intent intent = new Intent(this, OSMNodesViewActivity.class);
+        intent.putExtra("baseUrl", baseUrl);
+        intent.putExtra("tag", tag);
+        intent.putExtra("viewRadius", viewRadius);
+        intent.putExtra("viewAngle", viewAngle);
+        intent.putExtra("nodeType", "saddle");
+        startActivity(intent);
     }
+    public void openSprings(View view) {
+        Intent intent = new Intent(this, OSMNodesViewActivity.class);
+        intent.putExtra("baseUrl", baseUrl);
+        intent.putExtra("tag", tag);
+        intent.putExtra("viewRadius", viewRadius);
+        intent.putExtra("viewAngle", viewAngle);
+        intent.putExtra("nodeType", "spring");
+        startActivity(intent);
 
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        switch (requestCode) {
-            case PERMISSION_ACCESS_FINE_LOCATION:
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    //Toast.makeText(this, "All good from onRequest", Toast.LENGTH_SHORT).show();
-                    this.doStuff();
-                } else {
-                    Toast.makeText(this, "Need your location!", Toast.LENGTH_SHORT).show();
-                }
-
-                break;
-        }
     }
+    public void openWaterfalls(View view) {
+        Intent intent = new Intent(this, OSMNodesViewActivity.class);
+        intent.putExtra("baseUrl", baseUrl);
+        intent.putExtra("tag", tag);
+        intent.putExtra("viewRadius", viewRadius);
+        intent.putExtra("viewAngle", viewAngle);
+        intent.putExtra("nodeType", "waterfall");
+        startActivity(intent);
 
+    }
+    public void openSettlements(View view) {
+        Intent intent = new Intent(this, OSMNodesViewActivity.class);
+        intent.putExtra("baseUrl", baseUrl);
+        intent.putExtra("tag", tag);
+        intent.putExtra("viewRadius", viewRadius);
+        intent.putExtra("viewAngle", viewAngle);
+        intent.putExtra("nodeType", "settlement");
+        startActivity(intent);
 
+    }
+    public void openCaves(View view) {
+        Intent intent = new Intent(this, OSMNodesViewActivity.class);
+        intent.putExtra("baseUrl", baseUrl);
+        intent.putExtra("tag", tag);
+        intent.putExtra("viewRadius", viewRadius);
+        intent.putExtra("viewAngle", viewAngle);
+        intent.putExtra("nodeType", "cave_entrance");
+        startActivity(intent);
 
+    }
+    public void openForests(View view) {
+        Intent intent = new Intent(this, OSMNodesViewActivity.class);
+        intent.putExtra("baseUrl", baseUrl);
+        intent.putExtra("tag", tag);
+        intent.putExtra("viewRadius", viewRadius);
+        intent.putExtra("viewAngle", viewAngle);
+        intent.putExtra("nodeType", "wood");
+        startActivity(intent);
+
+    }
+    public void openLakes(View view) {
+        Intent intent = new Intent(this, OSMNodesViewActivity.class);
+        intent.putExtra("baseUrl", baseUrl);
+        intent.putExtra("tag", tag);
+        intent.putExtra("viewRadius", viewRadius);
+        intent.putExtra("viewAngle", viewAngle);
+        intent.putExtra("nodeType", "water");
+        startActivity(intent);
+
+    }
+    public void openOther(View view) {
+        Intent intent = new Intent(this, OSMNodesViewActivity.class);
+        intent.putExtra("baseUrl", baseUrl);
+        intent.putExtra("tag", tag);
+        intent.putExtra("viewRadius", viewRadius);
+        intent.putExtra("viewAngle", viewAngle);
+        intent.putExtra("nodeType", "other");
+        startActivity(intent);
+
+    }
 
 
 

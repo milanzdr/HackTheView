@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginTop="0dp"
+    tools:context=".OSMNodesViewActivity">
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/peakListRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="2dp"
+        android:scrollbars="vertical"
+        app:layout_constraintBottom_toTopOf="@+id/seekBarViewAngle"
+        app:layout_constraintTop_toBottomOf="@+id/txtViewParams">
+
+    </android.support.v7.widget.RecyclerView>
+
+    <TextView
+        android:id="@+id/locationInfoTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="5dp"
+        android:textSize="10sp"
+        app:layout_constraintTop_toBottomOf="@+id/peakListTitle" />
+
+    <TextView
+        android:id="@+id/peakListTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        android:text="Peaks in this direction (20km radius)"
+        android:textSize="20sp"
+        app:fontFamily="sans-serif" />
+
+    <TextView
+        android:id="@+id/txtViewAngle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:padding="5dp"
+        android:text="View angle"
+        app:layout_constraintBottom_toTopOf="@+id/txtViewRadius"
+        app:layout_constraintWidth_percent="0.25" />
+
+    <TextView
+        android:id="@+id/txtViewRadius"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:padding="5dp"
+        android:text="View radius"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintWidth_percent="0.25" />
+
+    <SeekBar
+        android:id="@+id/seekBarViewAngle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:padding="5dp"
+        app:layout_constraintBottom_toTopOf="@+id/seekBarViewRadius"
+        app:layout_constraintLeft_toRightOf="@+id/txtViewAngle"
+        app:layout_constraintRight_toRightOf="parent" />
+
+    <SeekBar
+        android:id="@+id/seekBarViewRadius"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:padding="5dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toRightOf="@+id/txtViewRadius"
+        app:layout_constraintRight_toRightOf="parent" />
+
+    <TextView
+        android:id="@+id/txtViewParams"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="5dp"
+        android:text="TextView"
+        android:textSize="10sp"
+        app:layout_constraintTop_toBottomOf="@+id/locationInfoTextView" />
+
+</android.support.constraint.ConstraintLayout>

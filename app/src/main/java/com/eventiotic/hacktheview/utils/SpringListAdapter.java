@@ -15,8 +15,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class PeakListAdapter extends RecyclerView.Adapter<PeakListAdapter.ViewHolder>  {
-    private List<OSMNode> adapterpeaks;
+public class SpringListAdapter extends RecyclerView.Adapter<SpringListAdapter.ViewHolder>  {
+    private List<OSMNode> adaptersprings;
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public TextView nameTxt;
@@ -38,49 +38,49 @@ public class PeakListAdapter extends RecyclerView.Adapter<PeakListAdapter.ViewHo
             return;
         }
         //Log.i("", "Radius:"+r);
-            adapterpeaks=new ArrayList<OSMNode>(p);
-            for (Iterator<OSMNode> iter = adapterpeaks.listIterator(); iter.hasNext(); ) {
-                OSMNode a = iter.next();
-                if(Math.abs(a.getCurAngle())>phoneAngle/2 || a.getDistance()>r/1000) {
-                    iter.remove();
-                }
+        adaptersprings=new ArrayList<OSMNode>(p);
+        for (Iterator<OSMNode> iter = adaptersprings.listIterator(); iter.hasNext(); ) {
+            OSMNode a = iter.next();
+            if(Math.abs(a.getCurAngle())>phoneAngle/2 || a.getDistance()>r/1000) {
+                iter.remove();
             }
+        }
 
-            notifyDataSetChanged();
+        notifyDataSetChanged();
     }
 
 
-    public PeakListAdapter(List<OSMNode> peaks) {
-        this.adapterpeaks = peaks;
+    public SpringListAdapter(List<OSMNode> peaks) {
+        this.adaptersprings = peaks;
     }
 
 
     @Override
-    public PeakListAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View v= LayoutInflater.from(parent.getContext()).inflate(R.layout.peaksmodel,parent,false);
-        
+    public SpringListAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View v= LayoutInflater.from(parent.getContext()).inflate(R.layout.springsmodel,parent,false);
+
         ViewHolder vh = new ViewHolder(v);
         return vh;
     }
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        String peakNameStr;
-        String peakElevationStr="";
-        String peakDescStr="";
+        String springNameStr;
+        String springElevationStr="";
+        String springDescStr="";
 
-        peakNameStr=adapterpeaks.get(position).getTags().getName();
-        if(adapterpeaks.get(position).getTags().getName()=="") {
-            peakNameStr="Unnamed";
+        springNameStr=adaptersprings.get(position).getTags().getName();
+        if(adaptersprings.get(position).getTags().getName()=="") {
+            springNameStr="Unnamed";
         }
-        holder.nameTxt.setText(peakNameStr);
-        if(adapterpeaks.get(position).getTags().getEle()!=0) {
-            peakElevationStr="("+adapterpeaks.get(position).getTags().getEle().toString()+"m)";
+        holder.nameTxt.setText(springNameStr);
+        if(adaptersprings.get(position).getTags().getEle()!=0) {
+            springElevationStr="("+adaptersprings.get(position).getTags().getEle().toString()+"m)";
         }
 
         DecimalFormat numberFormat = new DecimalFormat("#.0");
-        peakDescStr=peakDescStr+"Distance: "+numberFormat.format(adapterpeaks.get(position).getDistance())+"km, Azimuth: "+numberFormat.format(adapterpeaks.get(position).getAz())+"deg";
-        double ca = adapterpeaks.get(position).getCurAngle();
+        springDescStr=springDescStr+"Distance: "+numberFormat.format(adaptersprings.get(position).getDistance())+"km, Azimuth: "+numberFormat.format(adaptersprings.get(position).getAz())+"deg";
+        double ca = adaptersprings.get(position).getCurAngle();
         if(ca!=0) {
             //peakDescStr=peakDescStr+", View: "+numberFormat.format(adapterpeaks.get(position).getCurAngle());
             if(Math.abs(ca)<5) {
@@ -93,15 +93,15 @@ public class PeakListAdapter extends RecyclerView.Adapter<PeakListAdapter.ViewHo
                 }
             }
         }
-        holder.eleTxt.setText(peakElevationStr);
-        holder.distTxt.setText(peakDescStr);
+        holder.eleTxt.setText(springElevationStr);
+        holder.distTxt.setText(springDescStr);
 
 
     }
 
     @Override
     public int getItemCount() {
-        return adapterpeaks.size();
+        return adaptersprings.size();
     }
 
 }

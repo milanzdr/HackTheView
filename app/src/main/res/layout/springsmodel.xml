@@ -27,7 +27,7 @@
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="@android:color/darker_gray"
-         />
+        />
 
     <TextView
         android:id="@+id/nameTxt"
@@ -50,7 +50,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0"
-        app:srcCompat="@drawable/ic_peak"
+        app:srcCompat="@drawable/ic_spring"
         tools:layout_editor_absoluteX="0dp" />
 
     <TextView

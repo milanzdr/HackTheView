@@ -1,17 +1,34 @@
-package com.eventiotic.hacktheview.utils;
+package com.eventiotic.hacktheview.models;
 
 import android.location.Location;
 
+import com.eventiotic.hacktheview.utils.Utils;
+
 import java.math.BigInteger;
 
-public class Peak {
+public class OSMNode implements Comparable<OSMNode> {
     BigInteger id;
     Double lat;
     Double lon;
-    Tags tags;
+    OSMNodeTags tags;
     double az;
-    float angleloc;
+    //float angleloc;
     double distance;
+    double curAngle;
+
+
+    @Override
+    public int compareTo(OSMNode o) {
+        double ca=Math.abs(this.getDistance());
+        double cax=Math.abs(o.getDistance());
+        //Log.i("", "Uslo u compareTo");
+        if(ca>cax) {
+            return 1;
+        } else if (ca<=cax) {
+            return -1;
+        }
+        return 0;
+    }
 
     public Double getLat() {
         return lat;
@@ -23,12 +40,20 @@ public class Peak {
         return id;
     }
 
-    public Tags getTags() {
+    public OSMNodeTags getTags() {
         return tags;
     }
 
     public double getAz() {
         return az;
+    }
+
+    public void setCurAngle(double curAngle) {
+        this.curAngle = curAngle;
+    }
+
+    public double getCurAngle() {
+        return curAngle;
     }
 
     public void setAz(Location l) {
