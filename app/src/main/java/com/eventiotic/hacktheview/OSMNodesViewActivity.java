@@ -30,9 +30,13 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.eventiotic.hacktheview.models.OSMNode;
+import com.eventiotic.hacktheview.utils.CaveListAdapter;
+import com.eventiotic.hacktheview.utils.LakeListAdapter;
 import com.eventiotic.hacktheview.utils.PeakListAdapter;
+import com.eventiotic.hacktheview.utils.SettlementListAdapter;
 import com.eventiotic.hacktheview.utils.SpringListAdapter;
 import com.eventiotic.hacktheview.utils.Utils;
+import com.eventiotic.hacktheview.utils.WaterfallListAdapter;
 import com.google.gson.Gson;
 
 import org.json.JSONArray;
@@ -64,6 +68,10 @@ public class OSMNodesViewActivity extends AppCompatActivity implements SensorEve
     private RecyclerView.LayoutManager mLayoutManager;
     private PeakListAdapter mAdapter;
     private SpringListAdapter msAdapter;
+    private CaveListAdapter mcaveAdapter;
+    private WaterfallListAdapter mwAdapter;
+    private LakeListAdapter mlakeAdapter;
+    private SettlementListAdapter msetAdapter;
     private double locAzimuth;
     private double curRotation;
     private int viewAngle;
@@ -105,6 +113,18 @@ public class OSMNodesViewActivity extends AppCompatActivity implements SensorEve
         } else if(nodeType.equals("spring")) {
             msAdapter = new SpringListAdapter(foundnodes);
             mListRecyclerView.setAdapter(msAdapter);
+        }  else if(nodeType.equals("cave")) {
+            mcaveAdapter = new CaveListAdapter(foundnodes);
+            mListRecyclerView.setAdapter(mcaveAdapter);
+        } else if(nodeType.equals("waterfall")) {
+            mwAdapter = new WaterfallListAdapter(foundnodes);
+            mListRecyclerView.setAdapter(mwAdapter);
+        }  else if(nodeType.equals("lake")) {
+            mlakeAdapter = new LakeListAdapter(foundnodes);
+            mListRecyclerView.setAdapter(mlakeAdapter);
+        }  else if(nodeType.equals("settlement")) {
+            msetAdapter = new SettlementListAdapter(foundnodes);
+            mListRecyclerView.setAdapter(msetAdapter);
         } else {
             mAdapter = new PeakListAdapter(foundnodes);
             mListRecyclerView.setAdapter(mAdapter);
@@ -177,6 +197,26 @@ public class OSMNodesViewActivity extends AppCompatActivity implements SensorEve
                     if (msAdapter != null && foundnodes != null) {
                         Collections.sort(foundnodes);
                         msAdapter.updateData(foundnodes, viewAngle, viewRadius);
+                    }
+                } else if(nodeType.equals("cave")) {
+                    if (mcaveAdapter != null && foundnodes != null) {
+                        Collections.sort(foundnodes);
+                        mcaveAdapter.updateData(foundnodes, viewAngle, viewRadius);
+                    }
+                } else if(nodeType.equals("waterfall")) {
+                    if (mwAdapter != null && foundnodes != null) {
+                        Collections.sort(foundnodes);
+                        mwAdapter.updateData(foundnodes, viewAngle, viewRadius);
+                    }
+                } else if(nodeType.equals("lake")) {
+                    if (mlakeAdapter != null && foundnodes != null) {
+                        Collections.sort(foundnodes);
+                        mlakeAdapter.updateData(foundnodes, viewAngle, viewRadius);
+                    }
+                } else if(nodeType.equals("settlement")) {
+                    if (msetAdapter != null && foundnodes != null) {
+                        Collections.sort(foundnodes);
+                        msetAdapter.updateData(foundnodes, viewAngle, viewRadius);
                     }
                 }
                 updateHandler.postDelayed(this, 1000);
