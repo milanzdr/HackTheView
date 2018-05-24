@@ -24,6 +24,27 @@ public class OSMNodeTags {
         }
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public void setWikidata(String wikidata) {
+        this.wikidata = wikidata;
+    }
+
+    public void setWikipedia(String wikipedia) {
+        this.wikipedia = wikipedia;
+    }
+
+    public void setEle(String ele) {
+        this.ele = ele;
+    }
+    
+
     public String getDescription() {
         return description;
     }

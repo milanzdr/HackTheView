@@ -19,8 +19,10 @@
                                   <option name="values">
                                     <map>
                                       <entry key="assetType" value="IMAGE" />
-                                      <entry key="imageAsset" value="C:\Users\milan.zdravkovic\Downloads\TEMP\spring.png" />
-                                      <entry key="outputName" value="ic_spring" />
+                                      <entry key="imageAsset" value="C:\Users\milan.zdravkovic\Downloads\TEMP\navigation_right_bottom.png" />
+                                      <entry key="outputName" value="ic_navigation_right_bottom" />
+                                      <entry key="theme" value="CUSTOM" />
+                                      <entry key="themeColor" value="2785e5" />
                                     </map>
                                   </option>
                                 </PersistentState>

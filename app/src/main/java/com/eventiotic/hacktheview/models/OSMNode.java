@@ -8,14 +8,22 @@ import java.math.BigInteger;
 
 public class OSMNode implements Comparable<OSMNode> {
     BigInteger id;
-    Double lat;
-    Double lon;
+    double lat;
+    double lon;
     OSMNodeTags tags;
     double az;
     //float angleloc;
     double distance;
     double curAngle;
 
+
+    public OSMNode() {
+
+    }
+
+    public void setTags(OSMNodeTags tags) {
+        this.tags = tags;
+    }
 
     @Override
     public int compareTo(OSMNode o) {
@@ -30,10 +38,18 @@ public class OSMNode implements Comparable<OSMNode> {
         return 0;
     }
 
-    public Double getLat() {
+    public void setLat(double lat) {
+        this.lat = lat;
+    }
+
+    public void setLon(double lon) {
+        this.lon = lon;
+    }
+
+    public double getLat() {
         return lat;
     }
-    public Double getLon() {
+    public double getLon() {
         return lon;
     }
     public BigInteger getId() {

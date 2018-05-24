@@ -18,6 +18,7 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.View;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.content.Context;
@@ -30,13 +31,8 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.eventiotic.hacktheview.models.OSMNode;
-import com.eventiotic.hacktheview.utils.CaveListAdapter;
-import com.eventiotic.hacktheview.utils.LakeListAdapter;
-import com.eventiotic.hacktheview.utils.PeakListAdapter;
-import com.eventiotic.hacktheview.utils.SettlementListAdapter;
-import com.eventiotic.hacktheview.utils.SpringListAdapter;
+import com.eventiotic.hacktheview.utils.OSMNodeListAdapter;
 import com.eventiotic.hacktheview.utils.Utils;
-import com.eventiotic.hacktheview.utils.WaterfallListAdapter;
 import com.google.gson.Gson;
 
 import org.json.JSONArray;
@@ -66,12 +62,7 @@ public class OSMNodesViewActivity extends AppCompatActivity implements SensorEve
     private String url="";
     private String TAG="";
     private RecyclerView.LayoutManager mLayoutManager;
-    private PeakListAdapter mAdapter;
-    private SpringListAdapter msAdapter;
-    private CaveListAdapter mcaveAdapter;
-    private WaterfallListAdapter mwAdapter;
-    private LakeListAdapter mlakeAdapter;
-    private SettlementListAdapter msetAdapter;
+    private OSMNodeListAdapter mAdapter;
     private double locAzimuth;
     private double curRotation;
     private int viewAngle;
@@ -83,6 +74,13 @@ public class OSMNodesViewActivity extends AppCompatActivity implements SensorEve
     private SeekBar mSeekBarViewAngle;
     private SeekBar mSeekBarViewRadius;
     private TextView mTxtViewParams;
+
+
+    public void openCameraView(View view){
+        Intent intent = new Intent(this, CameraViewActivity.class);
+        startActivity(intent);
+    }
+
 
     @Override
     public void onSensorChanged(SensorEvent event) {
@@ -97,7 +95,6 @@ public class OSMNodesViewActivity extends AppCompatActivity implements SensorEve
         mSensorManager.getRotationMatrix(mRotationMatrix, null,
                 mAccelerometerReading, mMagnetometerReading);
         mSensorManager.getOrientation(mRotationMatrix, mOrientationAngles);
-        //this.curAzimuth=mOrientationAngles[0];
         curRotation=Utils.radiansToDegrees(mOrientationAngles[0]);
     }
 
@@ -106,29 +103,9 @@ public class OSMNodesViewActivity extends AppCompatActivity implements SensorEve
         mListRecyclerView.setHasFixedSize(true);
         mLayoutManager = new LinearLayoutManager(this);
         mListRecyclerView.setLayoutManager(mLayoutManager);
-        //Log.i(TAG, nodeType);
-        if(nodeType.equals("peak")) {
-            mAdapter = new PeakListAdapter(foundnodes);
-            mListRecyclerView.setAdapter(mAdapter);
-        } else if(nodeType.equals("spring")) {
-            msAdapter = new SpringListAdapter(foundnodes);
-            mListRecyclerView.setAdapter(msAdapter);
-        }  else if(nodeType.equals("cave")) {
-            mcaveAdapter = new CaveListAdapter(foundnodes);
-            mListRecyclerView.setAdapter(mcaveAdapter);
-        } else if(nodeType.equals("waterfall")) {
-            mwAdapter = new WaterfallListAdapter(foundnodes);
-            mListRecyclerView.setAdapter(mwAdapter);
-        }  else if(nodeType.equals("lake")) {
-            mlakeAdapter = new LakeListAdapter(foundnodes);
-            mListRecyclerView.setAdapter(mlakeAdapter);
-        }  else if(nodeType.equals("settlement")) {
-            msetAdapter = new SettlementListAdapter(foundnodes);
-            mListRecyclerView.setAdapter(msetAdapter);
-        } else {
-            mAdapter = new PeakListAdapter(foundnodes);
-            mListRecyclerView.setAdapter(mAdapter);
-        }
+        mAdapter = new OSMNodeListAdapter(foundnodes);
+        mAdapter.setNodeType(nodeType);
+        mListRecyclerView.setAdapter(mAdapter);
     }
 
     public void updateCurAngleForNodes() {
@@ -188,36 +165,9 @@ public class OSMNodesViewActivity extends AppCompatActivity implements SensorEve
                 DecimalFormat azFormat = new DecimalFormat("#.0");
                 mLocationInfoTextView.setText(locText+ azFormat.format(Utils.getAzimuth(curRotation)));
                 updateCurAngleForNodes();
-                if(nodeType.equals("peak")) {
-                    if (mAdapter != null && foundnodes != null) {
+                if (mAdapter != null && foundnodes != null) {
                         Collections.sort(foundnodes);
                         mAdapter.updateData(foundnodes, viewAngle, viewRadius);
-                    }
-                } else if(nodeType.equals("spring")) {
-                    if (msAdapter != null && foundnodes != null) {
-                        Collections.sort(foundnodes);
-                        msAdapter.updateData(foundnodes, viewAngle, viewRadius);
-                    }
-                } else if(nodeType.equals("cave")) {
-                    if (mcaveAdapter != null && foundnodes != null) {
-                        Collections.sort(foundnodes);
-                        mcaveAdapter.updateData(foundnodes, viewAngle, viewRadius);
-                    }
-                } else if(nodeType.equals("waterfall")) {
-                    if (mwAdapter != null && foundnodes != null) {
-                        Collections.sort(foundnodes);
-                        mwAdapter.updateData(foundnodes, viewAngle, viewRadius);
-                    }
-                } else if(nodeType.equals("lake")) {
-                    if (mlakeAdapter != null && foundnodes != null) {
-                        Collections.sort(foundnodes);
-                        mlakeAdapter.updateData(foundnodes, viewAngle, viewRadius);
-                    }
-                } else if(nodeType.equals("settlement")) {
-                    if (msetAdapter != null && foundnodes != null) {
-                        Collections.sort(foundnodes);
-                        msetAdapter.updateData(foundnodes, viewAngle, viewRadius);
-                    }
                 }
                 updateHandler.postDelayed(this, 1000);
             }
@@ -285,8 +235,7 @@ public class OSMNodesViewActivity extends AppCompatActivity implements SensorEve
 
         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
 
-        //url="";
-        //Log.i(TAG, nodeType);
+
         String mTitle="";
         if(nodeType.equals("peak") || nodeType.equals("saddle") || nodeType.equals("cave_entrance") || nodeType.equals("wood") || nodeType.equals("water")) {
             url = baseUrl + "?data=[out:json];node(around:" + viewRadius + ",%20" + curLocation.getLatitude() + ",%20" + curLocation.getLongitude() + ")[natural="+nodeType+"];out;";
@@ -307,10 +256,10 @@ public class OSMNodesViewActivity extends AppCompatActivity implements SensorEve
             url= baseUrl + "?data=[out:json];(node(around:" + viewRadius + ",%20" + curLocation.getLatitude() + ",%20" + curLocation.getLongitude() + ")[place=town];node(around:" + viewRadius + ",%20" + curLocation.getLatitude() + ",%20" + curLocation.getLongitude() + ")[place=village];node(around:" + viewRadius + ",%20" + curLocation.getLatitude() + ",%20" + curLocation.getLongitude() + ")[place=hamlet];node(around:" + viewRadius + ",%20" + curLocation.getLatitude() + ",%20" + curLocation.getLongitude() + ")[place=isolated_dwelling];);out;";
             mTitle="Populated places";
         } else if(nodeType.equals("other")) {
-            url= baseUrl + "?data=[out:json];(node(around:" + viewRadius + ",%20" + curLocation.getLatitude() + ",%20" + curLocation.getLongitude() + ")[tourism=alpine_hut];node(around:" + viewRadius + ",%20" + curLocation.getLatitude() + ",%20" + curLocation.getLongitude() + ")[natural=saddle];node(around:\" + viewRadius + \",%20\" + curLocation.getLatitude() + \",%20\" + curLocation.getLongitude() + \")[natural=forest];node(around:\" + viewRadius + \",%20\" + curLocation.getLatitude() + \",%20\" + curLocation.getLongitude() + \")[tourism=picnic_site];node(around:" + viewRadius + ",%20" + curLocation.getLatitude() + ",%20" + curLocation.getLongitude() + ")[tourism=wilderness_hut];node(around:" + viewRadius + ",%20" + curLocation.getLatitude() +",%20" + curLocation.getLongitude() + ")[waterway=dam];);out;";
+            url= baseUrl + "?data=[out:json];(node(around:" + viewRadius + ",%20" + curLocation.getLatitude() + ",%20" + curLocation.getLongitude() + ")[tourism=alpine_hut];node(around:" + viewRadius + ",%20" + curLocation.getLatitude() + ",%20" + curLocation.getLongitude() + ")[natural=saddle];node(around:" + viewRadius + ",%20" + curLocation.getLatitude() + ",%20" + curLocation.getLongitude() + ")[natural=forest];node(around:" + viewRadius + ",%20" + curLocation.getLatitude() + ",%20" + curLocation.getLongitude() + ")[tourism=picnic_site];node(around:" + viewRadius + ",%20" + curLocation.getLatitude() + ",%20" + curLocation.getLongitude() + ")[tourism=wilderness_hut];node(around:" + viewRadius + ",%20" + curLocation.getLatitude() +",%20" + curLocation.getLongitude() + ")[waterway=dam];);out;";
             mTitle="Other locations";
         }
-        //Log.i(TAG, url);
+
         mListTitle = (TextView) findViewById(R.id.peakListTitle);
         mListTitle.setText(mTitle+" in this direction");
 

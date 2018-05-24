@@ -13,7 +13,7 @@
         android:layout_height="0dp"
         android:layout_marginTop="2dp"
         android:scrollbars="vertical"
-        app:layout_constraintBottom_toTopOf="@+id/seekBarViewAngle"
+        app:layout_constraintBottom_toTopOf="@+id/butHackTheView"
         app:layout_constraintTop_toBottomOf="@+id/txtViewParams">
 
     </android.support.v7.widget.RecyclerView>
@@ -79,5 +79,18 @@
         android:text="TextView"
         android:textSize="10sp"
         app:layout_constraintTop_toBottomOf="@+id/locationInfoTextView" />
+
+    <Button
+        android:id="@+id/butHackTheView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="7dp"
+        android:layout_marginTop="7dp"
+        android:onClick="openCameraView"
+        android:text="Hack the view!"
+        app:layout_constraintBottom_toTopOf="@+id/seekBarViewAngle"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/peakListRecyclerView" />
 
 </android.support.constraint.ConstraintLayout>
